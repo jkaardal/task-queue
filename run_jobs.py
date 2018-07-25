@@ -7,19 +7,26 @@ import random
 import string
 import time
 
-'''Submit jobs to a set of host machines via ssh; the jobs are run within a self-terminating screen session.
-This script assumes that the file system is preserved on each host across a network. If necessary, the pre-submission script may be used to transfer files prior to job initiation.'''
+'''Submit jobs to a set of host machines via ssh; the jobs are run
+within a self-terminating screen session. This script assumes that the
+file system is preserved on each host across a network. If necessary,
+the pre-submission script may be used to transfer files prior to job
+initiation.'''
 
-# when True, prints job submission commands but does not connect to hosts or submit jobs; when False submits jobs on hosts
+# when True, prints job submission commands but does not connect to
+# hosts or submit jobs; when False submits jobs on hosts
 test = False
 
-# generate jobs (array where each element is a string of a command to be run on one of the hosts)
+# generate jobs (array where each element is a string of a command to
+# be run on one of the hosts)
 jobs = []
 for i in range(6):
     jobs.append("python test_script.py")
 
-# set hosts to try (array where each element is a string of the host name) in order of preference
-# a semi-colon and then a semi-colon-delimited list of environment variable contingencies can be appended to the hostname
+# set hosts to try (array where each element is a string of the host
+# name) in order of preference a semi-colon and then a
+# semi-colon-delimited list of environment variable contingencies can
+# be appended to the hostname
 hosts = ["adelaide", "sydney; gpu0", "sydney; gpu1", "melbourne", "perth", "darwin"]
 
 # define a dictionary of environment contingencies to inherit to the screen session
@@ -27,7 +34,9 @@ envcom = dict()
 envcom['gpu0'] = "export USE_THIS_GPU=gpu0"
 envcom['gpu1'] = "export USE_THIS_GPU=gpu1"
 
-# if shared_file_system = True, default directory for screen session is script_path; if shared_file_directory = False, the default directory is the home folder
+# if shared_file_system = True, default directory for screen session
+# is script_path; if shared_file_directory = False, the default
+# directory is the home folder
 rundir = dict()
 rundir['melbourne'] = "~/different_path"
 
@@ -86,7 +95,9 @@ for i, host in enumerate(hosts):
 def generate_job_script(script_content, filename, exec_command=None):
     global job_script_path
 
-    # script_content should be a list where each entry is a line in the script file; generally speaking, each entry corresponds to a terminal command (bash, DOS, etc)
+    # script_content should be a list where each entry is a line in
+    # the script file; generally speaking, each entry corresponds to a
+    # terminal command (bash, DOS, etc)
     if len(script_content) > 0:
         content = script_content[0] + "\n"
         for i in range(1, len(script_content)):
@@ -99,7 +110,7 @@ def generate_job_script(script_content, filename, exec_command=None):
     full_path = os.path.join(job_script_path, filename)
     with open(full_path, "w") as f:
         f.write(content)
-    subprocess.call("chmod +x " + full_path, shell=True)
+    subprocess.call(['chmod', '+x', full_path])
         
     if exec_command is None:
         job = full_path
@@ -128,7 +139,8 @@ def generate_screen_name(all_screen_names):
 
 def screen_exists(screen_name):
     # this function is unused
-    var = subprocess.check_output(["screen -ls; true"], shell=True)
+    p = subprocess.Popen(['screen', '-ls'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    var, err = p.communicate()
     if "." + screen_name + "\t(" in var:
         print "True"
     else:
