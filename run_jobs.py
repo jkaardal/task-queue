@@ -21,38 +21,38 @@ test = False
 # be run on one of the hosts)
 jobs = []
 for i in range(6):
-    jobs.append("python test_script.py")
+    jobs.append('python test_script.py')
 
 # set hosts to try (array where each element is a string of the host
 # name) in order of preference a semi-colon and then a
 # semi-colon-delimited list of environment variable contingencies can
 # be appended to the hostname
-hosts = ["adelaide", "sydney; gpu0", "sydney; gpu1", "melbourne", "perth", "darwin"]
+hosts = ['adelaide', 'sydney; gpu0', 'sydney; gpu1', 'melbourne', 'perth', 'darwin']
 
 # define a dictionary of environment contingencies to inherit to the screen session
 envcom = dict()
-envcom['gpu0'] = "export USE_THIS_GPU=gpu0"
-envcom['gpu1'] = "export USE_THIS_GPU=gpu1"
+envcom['gpu0'] = 'export USE_THIS_GPU=gpu0'
+envcom['gpu1'] = 'export USE_THIS_GPU=gpu1'
 
 # if shared_file_system = True, default directory for screen session
 # is script_path; if shared_file_directory = False, the default
 # directory is the home folder
 rundir = dict()
-rundir['melbourne'] = "~/different_path"
+rundir['melbourne'] = '~/different_path'
 
 # script internals
-username = raw_input("username: ")
-password = getpass.getpass(prompt="password: ")
+username = raw_input('username: ')
+password = getpass.getpass(prompt='password: ')
 
 script_path = os.path.dirname(os.path.abspath(__file__))
-job_script_path = os.path.join(script_path, "shell_scripts")
+job_script_path = os.path.join(script_path, 'shell_scripts')
 shared_file_system = True
 hostlist = []
 screen_names = []
 resubmit_cycle = 30.0
 sub_delay = 0.0
 save_log = True
-log_suffix = ""
+log_suffix = ''
 
 if (not job_script_path is None) and (not os.path.exists(job_script_path)):
     os.makedirs(job_script_path)
@@ -81,13 +81,13 @@ for i, host in enumerate(hosts):
             if shared_file_system:
                 dirs.append(script_path)
             else:
-                dirs.append("~/")
-            print "Warning: rundir[" + host + "] is not a string and is not empty!"
+                dirs.append('~/')
+            print 'Warning: rundir[' + host + '] is not a string and is not empty!'
     else:
         if shared_file_system:
             dirs.append(script_path)
         else:
-            dirs.append("~/")
+            dirs.append('~/')
 
 
 
@@ -99,16 +99,16 @@ def generate_job_script(script_content, filename, exec_command=None):
     # the script file; generally speaking, each entry corresponds to a
     # terminal command (bash, DOS, etc)
     if len(script_content) > 0:
-        content = script_content[0] + "\n"
+        content = script_content[0] + '\n'
         for i in range(1, len(script_content)):
-            content += script_content[1] + "\n"
+            content += script_content[1] + '\n'
     else:
         content = None
-        print filename + " script empty; skipping."
+        print filename + ' script empty; skipping.'
         return None
 
     full_path = os.path.join(job_script_path, filename)
-    with open(full_path, "w") as f:
+    with open(full_path, 'w') as f:
         f.write(content)
     subprocess.call(['chmod', '+x', full_path])
         
@@ -141,10 +141,10 @@ def screen_exists(screen_name):
     # this function is unused
     p = subprocess.Popen(['screen', '-ls'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     var, err = p.communicate()
-    if "." + screen_name + "\t(" in var:
-        print "True"
+    if '.' + screen_name + '\t(' in var:
+        print 'True'
     else:
-        print "False"    
+        print 'False'    
 
 def generate_cmd(host, screen_name, dir, contingency, job):
     global script_path
@@ -153,23 +153,23 @@ def generate_cmd(host, screen_name, dir, contingency, job):
 
     if shared_file_system:
         if len(dir) > 0:
-            cmd = "cd " + dir + " && "
+            cmd = 'cd ' + dir + ' && '
         else:
-            cmd = "cd " + script_path + " && "
+            cmd = 'cd ' + script_path + ' && '
     else:
         if len(dir) > 0:
-            cmd = "cd " + dir + " && "
+            cmd = 'cd ' + dir + ' && '
         else:
-            cmd = ""
+            cmd = ''
 
     if len(contingency) > 0:
         for i, contingency in enumerate(contingency):
             if len(envcom[contingency]) < 1:
                 continue
             else:
-                cmd += envcom[contingency] + " && "
+                cmd += envcom[contingency] + ' && '
 
-    cmd += "screen -dmS " + screen_name + " " + job
+    cmd += 'screen -dmS ' + screen_name + ' ' + job
 
     return cmd
 
@@ -179,18 +179,18 @@ def verbose_cmd(host, screen_name, dir, contingency, job):
     global envcom
 
     vb = []
-    if dir == "~/":
-        prmpt = username + "@" + host + ":~$ "
+    if dir == '~/':
+        prmpt = username + '@' + host + ':~$ '
     else:
-        vb.append(username + "@" + host + ":~$ cd " + dir)
-        prmpt = username + "@" + host + ":" + dir + "$ "
+        vb.append(username + '@' + host + ':~$ cd ' + dir)
+        prmpt = username + '@' + host + ':' + dir + '$ '
 
     if len(contingency) > 0:
         for i in range(len(contingency)):
             vb.append(prmpt + envcom[contingency[i]])
 
-    vb.append(prmpt + "screen -dmS " + screen_name + " " + job)
-    vb.append(prmpt + "exit")    
+    vb.append(prmpt + 'screen -dmS ' + screen_name + ' ' + job)
+    vb.append(prmpt + 'exit')    
 
     return vb
 
@@ -198,19 +198,19 @@ def write_log(hostlist, screen_names, dirs, contingencies):
     global script_path
     global log_suffix
 
-    with open(script_path + "/rj" + log_suffix + ".log", "w") as f:
+    with open(script_path + '/rj' + log_suffix + '.log', 'w') as f:
         for i in range(len(hostlist)):
             if len(contingencies[i]) > 0:
-                f.write(hostlist[i] + ", " + screen_names[i] + ", " + dirs[i] + ", " + ", ".join(contingencies[i]) + "\n")
+                f.write(hostlist[i] + ', ' + screen_names[i] + ', ' + dirs[i] + ', ' + ', '.join(contingencies[i]) + '\n')
             else:
-                f.write(hostlist[i] + ", " + screen_names[i] + ", " + dirs[i] + "\n")
+                f.write(hostlist[i] + ', ' + screen_names[i] + ', ' + dirs[i] + '\n')
 
 def check_update_hosts():
     global script_path
     global log_suffix
 
     # check the log file for new/commented/removed entries
-    with open(script_path + "/rj" + log_suffix + ".log", "r") as f:
+    with open(script_path + '/rj' + log_suffix + '.log', 'r') as f:
         log = f.readlines()
 
     log = [l.split(',') for l in log]
@@ -225,7 +225,7 @@ def check_update_hosts():
     new_dirs = []
     new_contingencies = []
     for i in range(len(log)):
-        if len(log[i][0]) > 0 and not log[i][0].startswith("#"):
+        if len(log[i][0]) > 0 and not log[i][0].startswith('#'):
             new_hostlist.append(log[i][0])
             if len(log[i]) > 1 and len(log[i][1]) > 0:
                 new_screen_names.append(log[i][1])
@@ -236,7 +236,7 @@ def check_update_hosts():
             elif shared_file_system:
                 new_dirs.append(script_path)
             else:
-                new_dirs.append("~/")
+                new_dirs.append('~/')
             if len(log[i]) > 3:
                 contingency = []
                 for j in range(3, len(log[i])):
@@ -257,7 +257,7 @@ if not test:
     for i, h in enumerate(hosts):
         try:
             client.connect(hostname=h, username=username, password=password)
-            print "Connected to " + h
+            print 'Connected to ' + h
             screen_name = generate_screen_name(screen_names)
             screen_names.append(screen_name)
             cmd = generate_cmd(h, screen_name, dirs[i], contingencies[i], jobs[idx])
@@ -267,13 +267,13 @@ if not test:
             client.exec_command(cmd)
             idx += 1
             print vb[-1]
-            print " "
+            print ' '
             client.close()
             hostlist.append(h)
             time.sleep(sub_delay)
         except:
-            print "Could not connect to " + h + ". Skipping..."
-            print " "
+            print 'Could not connect to ' + h + '. Skipping...'
+            print ' '
             screen_name = generate_screen_name(screen_names)
             screen_names.append(screen_name)
             hostlist.append(h)
@@ -282,8 +282,8 @@ if not test:
         write_log(hostlist, screen_names, dirs, contingencies)
 
     if idx < len(jobs):
-        print "There are more jobs than hosts! (njobs=" + str(len(jobs)) + ", nhosts=" + str(len(hosts)) + ")"
-        print str(len(jobs)-idx) + " jobs remaining. Waiting for free hosts..."
+        print 'There are more jobs than hosts! (njobs=' + str(len(jobs)) + ', nhosts=' + str(len(hosts)) + ')'
+        print str(len(jobs)-idx) + ' jobs remaining. Waiting for free hosts...'
     while idx < len(jobs):
         time.sleep(resubmit_cycle)
         new_submission = False
@@ -294,11 +294,11 @@ if not test:
         for i, h in enumerate(hostlist):
             try:
                 client.connect(hostname=h, username=username, password=password)
-                stdin, stdout, stderr = client.exec_command("screen -ls; true")
+                stdin, stdout, stderr = client.exec_command('screen -ls; true')
                 var = stdout.readlines()
-                var = " ".join(var)
-                if not "." + screen_names[i] + "\t(" in var:
-                    print "Connected to " + h
+                var = ' '.join(var)
+                if not '.' + screen_names[i] + '\t(' in var:
+                    print 'Connected to ' + h
                     cmd = generate_cmd(h, screen_name, dirs[i], contingencies[i], jobs[idx])
                     vb = verbose_cmd(h, screen_name, dirs[i], contingencies[i], jobs[idx])
                     for k in range(len(vb)-1):
@@ -306,39 +306,39 @@ if not test:
                     client.exec_command(cmd)
                     print vb[-1]
                     idx += 1
-                    print " "
+                    print ' '
                     new_submission = True
                 client.close()
                 time.sleep(sub_delay)
                 if idx >= len(jobs):
                     break
             except:
-                print "Error: could not connect to host " + h + ". Skipping this cycle..."
+                print 'Error: could not connect to host ' + h + '. Skipping this cycle...'
         if new_submission and idx < len(jobs):
-            print str(len(jobs)-idx) + " jobs remaining. Waiting for free hosts..."
+            print str(len(jobs)-idx) + ' jobs remaining. Waiting for free hosts...'
 
-    print "Job submission complete. Exiting..."
+    print 'Job submission complete. Exiting...'
 
 else:
     if len(hosts) < len(jobs):
         for idx, h in enumerate(hosts):
-            print "Connected to " + h
+            print 'Connected to ' + h
             screen_name = generate_screen_name(screen_names)
             screen_names.append(screen_name)
             vb = verbose_cmd(h, screen_name, dirs[idx], contingencies[idx], jobs[idx])
             for k in range(len(vb)):
                 print vb[k]
-            print " "
+            print ' '
 
-        print "There are more jobs than hosts! (njobs=" + str(len(jobs)) + ", nhosts=" + str(len(hosts)) + ")"
+        print 'There are more jobs than hosts! (njobs=' + str(len(jobs)) + ', nhosts=' + str(len(hosts)) + ')'
     else:
         for idx, job in enumerate(jobs):
-            print "Connected to " + hosts[idx]
+            print 'Connected to ' + hosts[idx]
             screen_name = generate_screen_name(screen_names)
             screen_names.append(screen_name)
             vb = verbose_cmd(hosts[idx], screen_name, dirs[idx], contingencies[idx], job)
             for k in range(len(vb)):
                 print vb[k]
-            print " "
+            print ' '
 
-    print "Test output complete. Exiting..."
+    print 'Test output complete. Exiting...'
